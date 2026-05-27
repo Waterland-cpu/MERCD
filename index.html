@@ -5,30 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NSQ550 ERCD</title>
     <style>
-        /* 基礎樣式 */
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h1 { color: #0056b3; text-align: center; }
         #search { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
         
-        /* 表格骨架結構 */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
         
-        /* 精準控管四個欄位的寬度比例 */
-        th:nth-child(1), td:nth-child(1) { width: 5%; text-align: center; }  /* 編號 */
-        th:nth-child(2), td:nth-child(2) { width: 25%; }                     /* 錯誤碼 */
-        th:nth-child(3), td:nth-child(3) { width: 45%; }                     /* 建議處置 */
-        th:nth-child(4), td:nth-child(4) { width: 25%; text-align: center; } /* 參考圖片 */
+        th:nth-child(1), td:nth-child(1) { width: 6%; text-align: center; }  
+        th:nth-child(2), td:nth-child(2) { width: 24%; }                     
+        th:nth-child(3), td:nth-child(3) { width: 45%; }                     
+        th:nth-child(4), td:nth-child(4) { width: 25%; text-align: center; } 
 
-        th { 
-            background-color: #0056b3; 
-            color: white; 
-            padding: 12px; 
-            text-align: left; 
-            font-size: 15px;
-        }
+        th { background-color: #0056b3; color: white; padding: 12px; text-align: left; font-size: 15px; }
 
-        /* 核心表格樣式：修正換行與對齊 */
         td { 
             padding: 12px; 
             border-bottom: 1px solid #ddd; 
@@ -40,44 +30,34 @@
             word-break: break-word;
         }
 
-        /* 多圖排版專用 */
-        .multi-image-container {
-            display: flex;          
-            flex-wrap: wrap;        
-            gap: 8px;               
-            justify-content: center;
-        }
+        .multi-image-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 
-        /* 限制儲存格內所有圖片的基礎大小與比例 */
         #tableBody td img {
-            width: 80px;            
-            height: 80px;           
+            width: 90px;            
+            height: 90px;           
             object-fit: cover;      
-            border-radius: 4px; 
+            border-radius: 6px; 
             border: 1px solid #ccc;
             cursor: pointer;
             transition: transform 0.2s ease-in-out; 
         }
 
-        /* 滑鼠移到任何一張小圖上，照片會放大看細節 */
         #tableBody td img:hover {
-            transform: scale(2.5);  
+            transform: scale(2.8);  
             position: relative;
             z-index: 999;           
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
             border-color: #0056b3;
         }
 
-        /* 📱 行動裝置最佳化 */
         @media screen and (max-width: 600px) {
             table { table-layout: fixed !important; width: 100% !important; }
-            th:nth-child(1), td:nth-child(1) { width: 5% !important; text-align: center; }
-            th:nth-child(2), td:nth-child(2) { width: 25% !important; }
-            th:nth-child(3), td:nth-child(3) { width: 45% !important; }
-            th:nth-child(4), td:nth-child(4) { width: 25% !important; text-align: center; }
-            th, td { padding: 8px 4px !important; font-size: 12px !important; }
-            #tableBody td img { width: 45px !important; height: 45px !important; }
-            .multi-image-container { gap: 4px !important; }
+            th:nth-child(1), td:nth-child(1) { width: 8% !important; }
+            th:nth-child(2), td:nth-child(2) { width: 27% !important; }
+            th:nth-child(3), td:nth-child(3) { width: 40% !important; }
+            th:nth-child(4), td:nth-child(4) { width: 25% !important; }
+            th, td { padding: 6px 4px !important; font-size: 11px !important; }
+            #tableBody td img { width: 50px !important; height: 50px !important; }
         }
     </style>
 </head>
@@ -85,7 +65,7 @@
 
 <div class="container">
     <h1>NSQ550 ERCD</h1>
-    <input type="text" id="search" placeholder="輸入關鍵字 (例如: IM, Motor, MPCA)...">
+    <input type="text" id="search" placeholder="輸入關鍵字尋找錯誤碼或處置方法...">
 
     <table id="errorTable">
         <thead>
@@ -106,36 +86,59 @@
     const searchInput = document.getElementById('search');
     const tableBody = document.getElementById('tableBody');
 
+    // 🌟 超強大自動抓取圖片路徑演算法 (防堵空格、大小寫、欄位變動)
+    function findImagePath(item) {
+        let potentialPath = "";
+
+        // 1. 先嘗試找出所有物件中的 Key
+        for (let key in item) {
+            let cleanKey = key.toLowerCase().replace(/\s+/g, ''); // 把所有空格移掉、變小寫
+            let value = String(item[key]).trim();
+
+            // 如果值本身就是 NaN 或是空的，直接跳過
+            if (value === "NaN" || value === "undefined" || value === "null" || value === "") {
+                continue;
+            }
+
+            // 2. 如果欄位名稱叫 image 或 unnamed
+            if (cleanKey.includes('image') || cleanKey.includes('unnamed')) {
+                // 如果內容包含特定的圖片路徑格式
+                if (value.includes('images/') || value.toLowerCase().includes('.png') || value.toLowerCase().includes('.jpg')) {
+                    return value; // 找到了，直接收工！
+                }
+                // 備用：如果欄位叫做 unnamed 且裡面確實有值，先記錄起來
+                if (cleanKey.includes('unnamed3') || cleanKey.includes('image')) {
+                    potentialPath = value;
+                }
+            }
+        }
+        return potentialPath;
+    }
+
     function renderTable(filterText = "") {
         tableBody.innerHTML = ""; 
 
-        // 檢查 errorData 是否成功從 data.js 載入
         if (typeof errorData === 'undefined') {
-            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">尚未讀取到資料 (data.js) 或 data.js 檔案內部語法有錯誤。</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red; font-weight:bold;">❌ 無法讀取 data.js 資料，請檢查檔案第 21 行左右的 NaN 是否未加引號。</td></tr>';
             return;
         }
 
-        // 資料過濾
         const filteredData = errorData.filter(item => {
             const col1 = String(item['Error message'] || "").toLowerCase();
             const col2 = String(item['Solution'] || item['Unnamed: 1'] || "").toLowerCase();
-            const col3 = String(item['Description'] || "").toLowerCase();
             
-            return col1.includes(filterText.toLowerCase()) || 
-                   col2.includes(filterText.toLowerCase()) ||
-                   col3.includes(filterText.toLowerCase());
+            return col1.includes(filterText.toLowerCase()) || col2.includes(filterText.toLowerCase());
         });
 
         filteredData.forEach((item, index) => {
             let errorMsg = item['Error message'] || "-";
             let solution = item['Solution'] || item['Unnamed: 1'] || "-"; 
-            let desc = item['Description'] || "-";
             
-            // 智慧解析圖片路徑：優先抓取 Unnamed: 3
-            let imagePath = item['Unnamed: 3'] || item['Image'] || item['image'] || ""; 
+            // 🎯 使用最新的模糊比對演算法抓圖片
+            let imagePath = findImagePath(item); 
             let imageHtml = "-";
 
-            // 定義關鍵字顏色對照
+            // 關鍵字高亮
             const colorRules = [
                 { word: "Egr", color: "red" },
                 { word: "SYS_Chk", color: "green" },
@@ -144,23 +147,19 @@
 
             colorRules.forEach(rule => {
                 const regex = new RegExp(rule.word, "gi");
-                const replacement = `<span style="color:${rule.color}; font-weight:bold;">$&</span>`;
-                desc = desc.replace(regex, replacement);
-                solution = solution.replace(regex, replacement);
+                solution = solution.replace(regex, `<span style="color:${rule.color}; font-weight:bold;">$&</span>`);
             });
 
-            // 圖片路決定義與排除 NaN 欄位
-            let imgValue = String(imagePath).trim();
-            
-            if (imgValue && imgValue !== "" && imgValue !== "-" && imgValue !== "NaN" && imgValue !== "undefined" && imgValue !== "null") {
-                if (imgValue.includes("<img")) {
-                    imageHtml = `<div class="multi-image-container">${imgValue}</div>`;
+            // 圖片渲染邏輯
+            if (imagePath && imagePath !== "-" && imagePath !== "NaN") {
+                if (imagePath.includes("<img")) {
+                    imageHtml = `<div class="multi-image-container">${imagePath}</div>`;
                 } else {
                     imageHtml = `
-                        <a href="${imgValue}" target="_blank" onclick="event.preventDefault();">
-                            <img src="${imgValue}" 
+                        <a href="${imagePath}" target="_blank" onclick="event.preventDefault();">
+                            <img src="${imagePath}" 
                                  alt="參考圖片"
-                                 onerror="this.onerror=null; this.src='https://placehold.co/80x80?text=No+Image';">
+                                 onerror="this.onerror=null; this.src='https://placehold.co/90x90?text=No+Image';">
                         </a>`;
                 }
             } else {
@@ -185,7 +184,6 @@
 
     searchInput.addEventListener('input', (e) => renderTable(e.target.value));
     
-    // 初始化與驗證
     window.onload = function() {
         const CORRECT_PASSWORD = "prisma"; 
         let userPassword = prompt("請輸入訪問密碼 (Please enter password)：");
@@ -194,7 +192,7 @@
             alert("驗證成功！歡迎使用。");
             renderTable();
             
-            // 綁定圖片點擊開大圖事件
+            // 點擊小圖開原始大圖
             document.getElementById('tableBody').addEventListener('click', function(e) {
                 if (e.target.tagName === 'IMG') {
                     const imageUrl = e.target.src;
@@ -203,15 +201,13 @@
                     }
                 }
             });
-            
         } else {
             alert("密碼錯誤，拒絕訪問！");
             document.body.innerHTML = `
-                <div style="text-align:center; margin-top:100px; color:#ff4d4f; font-family:sans-serif;">
+                <div style="text-align:center; margin-top:100px; color:#ff4d4f;">
                     <h2>🔒 存取遭拒 (Access Denied)</h2>
-                    <p>您輸入了錯誤的密碼，無法檢視此系統。請重新整理網頁並再試一次。</p>
-                </div>
-            `;
+                    <p>密碼錯誤，請重新整理網頁再試一次。</p>
+                </div>`;
         }
     };
 </script>
