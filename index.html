@@ -130,8 +130,8 @@
             return;
         }
 
-        // 🎯 修正二：改用 error_data 進行過濾
-        const filteredData = error_data.filter(item => {
+        // 🎯 修正二：改用 errordata 進行過濾
+        const filteredData = errordata.filter(item => {
             const col1 = String(item['Error message'] || "").toLowerCase();
             const col2 = String(item['Solution'] || item['Unnamed: 1'] || "").toLowerCase();
             const col3 = String(item['Description'] || "").toLowerCase();
